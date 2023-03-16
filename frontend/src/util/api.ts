@@ -6,6 +6,7 @@ export type FaucetRequest = {
 export type FaucetResponse = { txid: string };
 
 const BACKEND_URL = "https://api.faucet.vulpem.com"
+
 //const BACKEND_URL = "http://localhost:8000"
 
 
