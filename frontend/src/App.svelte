@@ -1,9 +1,8 @@
 <script lang="typescript">
-  import {Html5Qrcode} from 'html5-qrcode'
-  import {onDestroy, onMount} from 'svelte'
-  import assets from './util/assets';
-  import type {FaucetResponse} from './util/api';
-  import {requestAsset} from './util/api';
+  import { Html5Qrcode } from 'html5-qrcode';
+  import { onDestroy, onMount } from 'svelte';
+  import type { FaucetResponse } from './util/api';
+  import { fetchAssets, requestAsset } from './util/api';
   import loader from './util/loader';
 
   let address: string;
@@ -18,7 +17,7 @@
 
   function handleClick() {
     if (!address || address.length === 0) return;
-    faucetPromise = loader(requestAsset({to: address, asset}), (loading) => {
+    faucetPromise = loader(requestAsset({ to: address, asset }), (loading) => {
       faucetLoading = loading;
     });
   }
@@ -33,29 +32,29 @@
       isModalActive = true;
       address = null;
       qrCodeScanner.start(
-        {facingMode: 'environment'},
-        {fps: 10},
+        { facingMode: 'environment' },
+        { fps: 10 },
         onScanSuccess,
         onScanFailure
-      )
-    }
+      );
+    };
 
     const onScanSuccess = (decodedText) => {
       address = decodedText;
       closeScannerModal();
-    }
+    };
 
     const onScanFailure = (error) => {
-      console.debug(`Code scan error = ${error}`)
-    }
+      console.debug(`Code scan error = ${error}`);
+    };
 
-    qrCodeScanner = new Html5Qrcode('qr-code-scanner')
+    qrCodeScanner = new Html5Qrcode('qr-code-scanner');
 
     const icon = document.querySelector('.is-clickable');
     icon.addEventListener('click', () => {
-      startScanner()
+      startScanner();
     });
-  })
+  });
 
   onDestroy(() => {
     qrCodeScanner.clear();
@@ -76,9 +75,11 @@
             <div class="control">
               <div class="select is-primary">
                 <select bind:value={asset} id="asset">
-                  {#each assets as {name, id}}
-                    <option value={id}>{name}</option>
-                  {/each}
+                  {#await fetchAssets() then assets}
+                    {#each Object.entries(assets.assets) as [hash, ticker]}
+                      <option value={hash}>{ticker}</option>
+                    {/each}
+                  {/await}
                 </select>
               </div>
             </div>
@@ -87,33 +88,37 @@
           <div class="field column is-8-mobile is-9-tablet is-10-desktop">
             <div class="control has-icons-right">
               <input
-                  bind:value={address}
-                  class="input is-primary"
-                  id="address"
-                  placeholder="Liquid testnet address"
-                  type="text"
+                bind:value={address}
+                class="input is-primary"
+                id="address"
+                placeholder="Liquid testnet address"
+                type="text"
               />
               <span class="icon is-clickable is-right">
-                <i class="fas fa-qrcode"></i>
+                <i class="fas fa-qrcode" />
               </span>
             </div>
           </div>
         </div>
 
         <button
-            class="button is-primary button__request"
-            class:is-loading={faucetLoading}
-            disabled={!address || address === ''}
-            on:click={handleClick}
+          class="button is-primary button__request"
+          class:is-loading={faucetLoading}
+          disabled={!address || address === ''}
+          on:click={handleClick}
         >
           REQUEST
         </button>
       </div>
 
-      {#if (address && address.length > 0)}
+      {#if address && address.length > 0}
         <div class="mt-4">
-          <a href={"http://twitter.com/intent/tweet?text=Requesting%20%40Liquid_BTC%20testnet%20funds%20to%20my%20%40MarinaWallet%20address%20%0A"+address}
-             target="_blank" rel="noreferrer">
+          <a
+            href={'http://twitter.com/intent/tweet?text=Requesting%20%40Liquid_BTC%20testnet%20funds%20to%20my%20%40MarinaWallet%20address%20%0A' +
+              address}
+            target="_blank"
+            rel="noreferrer"
+          >
             <p class="has-text-white is-link">
               Do you need more? 🐥 Tweet at your request
             </p>
@@ -122,15 +127,15 @@
       {/if}
 
       {#if faucetPromise}
-        {#await faucetPromise then {txid}}
+        {#await faucetPromise then { txid }}
           <div class="column is-10 is-offset-1 mt-6">
             <p class="has-text-white">
               Transaction ID:
               <a
-                  class="is-family-code"
-                  href="https://blockstream.info/liquidtestnet/tx/{txid}"
-                  rel="noreferrer"
-                  target="_blank"
+                class="is-family-code"
+                href="https://blockstream.info/liquidtestnet/tx/{txid}"
+                rel="noreferrer"
+                target="_blank"
               >
                 {txid}
               </a>
@@ -147,11 +152,19 @@
 </section>
 
 <div class="modal" class:is-active={isModalActive}>
-  <div class="modal-background" on:click={closeScannerModal}></div>
+  <div
+    class="modal-background"
+    on:click={closeScannerModal}
+    on:keypress={closeScannerModal}
+  />
   <div class="modal-content">
-    <div id="qr-code-scanner"></div>
+    <div id="qr-code-scanner" />
   </div>
-  <button aria-label="close" class="modal-close is-large" on:click={closeScannerModal}></button>
+  <button
+    aria-label="close"
+    class="modal-close is-large"
+    on:click={closeScannerModal}
+  />
 </div>
 
 <style global lang="scss" src="./scss/main.scss"></style>
