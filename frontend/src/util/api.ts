@@ -4,6 +4,7 @@ export type FaucetRequest = {
 };
 
 export type FaucetResponse = { txid: string };
+export type FetchAssetsResponse = { assets: Record<string, string> };
 
 const BACKEND_URL = "https://api.faucet.vulpem.com"
 
@@ -21,12 +22,18 @@ export async function requestAsset(
     },
     body: JSON.stringify(req),
   });
-
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text);
   }
+  return res.json();
+}
 
-  const result = res.json();
-  return result;
+export async function fetchAssets(): Promise<FetchAssetsResponse> {
+  const res = await fetch(`${BACKEND_URL}/api/assets`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text);
+  }
+  return res.json();
 }
