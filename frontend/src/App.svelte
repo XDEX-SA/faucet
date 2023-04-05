@@ -6,7 +6,9 @@
   import loader from './util/loader';
 
   let address: string;
-  let asset: string;
+  // Default to L-BTC
+  let asset =
+    '144c654344aa716d6f3abcc1ca90e5641e4e2a7f633bc09fe3baf64585819a49';
   let isModalActive = false;
   let qrCodeScanner = null;
 
@@ -16,7 +18,7 @@
   let faucetPromise: Promise<FaucetResponse>;
 
   function handleClick() {
-    if (!address || address.length === 0) return;
+    if (!address || address.length === 0 || !asset) return;
     faucetPromise = loader(requestAsset({ to: address, asset }), (loading) => {
       faucetLoading = loading;
     });
@@ -110,21 +112,6 @@
           REQUEST
         </button>
       </div>
-
-      {#if address && address.length > 0}
-        <div class="mt-4">
-          <a
-            href={'http://twitter.com/intent/tweet?text=Requesting%20%40Liquid_BTC%20testnet%20funds%20to%20my%20%40MarinaWallet%20address%20%0A' +
-              address}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <p class="has-text-white is-link">
-              Do you need more? 🐥 Tweet at your request
-            </p>
-          </a>
-        </div>
-      {/if}
 
       {#if faucetPromise}
         {#await faucetPromise then { txid }}
